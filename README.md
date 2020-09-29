@@ -1,1 +1,1 @@
-A repo of solutions for the cryptopals challenges
+Basic cryptographic analysis tools for education
