@@ -75,6 +75,7 @@ def AES_encrypt(key_b, msg_b):
     Wrapper for Cryptography library's AES function
     """
     cipher = AES.new(key_b, AES.MODE_ECB)
+    msg_b = PKCSpad(msg_b, AES.block_size)
     return cipher.encrypt(msg_b)
 
 def count_reps(x, bs):
@@ -89,12 +90,9 @@ def PKCSpad(msg, blocklength):
     """
     Applies PKCS#7 padding to the msg (bytes object)
     """
-    if len(msg) > blocklength:
-        print(f"Message is length {len(msg)}, but b-length is {blocklength}")
-    else:
-        pad_num = blocklength - len(msg)
-        pad_msg = bytes([pad_num])*pad_num
-        return msg + pad_msg
+    pad_num = (-len(msg)) % blocklength
+    pad_msg = bytes([pad_num])*pad_num
+    return msg + pad_msg
 
 def CBC_mode(key_b, IV, msg_b):
     """ 16 byte key, and IV """
@@ -117,14 +115,14 @@ def CBC_encrypt(key_b, IV, msg_b):
     #cipher = AES.new(key_b, AES.MODE_ECB)
     #print(cipher)
     msg_chunks = [msg_b[i:i+16] for i in range(0, len(msg_b), 16)]
-    print([len(x) for x in msg_chunks])
+    #print([len(x) for x in msg_chunks])
     ctext_blk = IV
     for ptext_blk in msg_chunks:
         if len(ptext_blk) !=16:
             ptext_blk = PKCSpad(ptext_blk, 16)
         ctext_blk = AES_encrypt(key_b, bxor(ptext_blk, ctext_blk))
         msg_encrypt.append(ctext_blk)
-    return msg_encrypt
+    return b''.join(msg_encrypt)
 
 def CBC_decrypt(key_b, IV, msg_b):
     """ 16 byte key, and IV """
@@ -140,6 +138,32 @@ def CBC_decrypt(key_b, IV, msg_b):
         ctext_blk0 = ctext_blk1
         msg_decrypt.append(ptext_blk)
     return msg_decrypt
+
+def rand_bytes(num):
+    """ Returns $(num) random bytes, read from /dev/urandom. Not cryptographically sercure, obv"""
+    buf = open("/dev/urandom", "rb").read(num)
+    return buf
+
+def ECB_CBC_oracle( bbox_fn ):
+    """
+    Oracle to detect whether a given cipertext was encrypted using AES in CBC or ECB mode
+    The idea here is to pass messages with a large number of repeating blocks, and look for repeats.
+    """
+    # Construct adverserial message
+    blocksize=16
+    adv_msg = b"\x00"*(3*blocksize)
+    cipher = bbox_fn(adv_msg)
+
+    for k in range(blocksize):
+        cyclic_perm = cipher[k:] + cipher[:k]
+        repeats, _ = count_reps(cyclic_perm, blocksize)
+        if repeats > 0:
+            bbox_fn.pred="ECB"
+            return f"{repeats} repeats in ciphertext. ECB mode probable."
+
+    
+    bbox_fn.pred="CBC"
+    return "CBC mode probable."
 
 if __name__ == "__main__":
     pass
