@@ -91,8 +91,18 @@ def PKCSpad(msg, blocklength):
     Applies PKCS#7 padding to the msg (bytes object)
     """
     pad_num = (-len(msg)) % blocklength
+    if pad_num == 0:
+        pad_num = blocklength
     pad_msg = bytes([pad_num])*pad_num
     return msg + pad_msg
+
+def PKCSstrip(msg):
+    """
+    Applies PKCS#7 padding to the msg (bytes object)
+    """
+    pad_num = msg[-1]
+    msg = msg[:-pad_num]
+    return msg
 
 def CBC_mode(key_b, IV, msg_b):
     """ 16 byte key, and IV """
