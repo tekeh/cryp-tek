@@ -20,7 +20,8 @@ def profile_for(email_str):
 
 def encrypted_profile_for(email_str):
     profile_str = profile_for(email_str)
-    return AES_encrypt(key_b, profile_str.encode())
+    profile_str = PKCSpad(profile_str.encode(), blocksize) 
+    return AES_encrypt(key_b, profile_str)
 
 def decrypt_profile(encrypted_profile):
     user_profile = AES_decrypt(key_b, encrypted_profile)
@@ -29,15 +30,15 @@ def decrypt_profile(encrypted_profile):
     return JSON
 
 if __name__ == "__main__":
+    blocksize=16
     ## Generate fixed random key
-    key_b = rand_bytes(16)
+    key_b = rand_bytes(blocksize)
 
     ## Encrypt the profile string (test)
     cipher_profile = encrypted_profile_for("foo@bar.com")
 
     ## Figure out how 'admin' encrypts when at the start of a block
-    blocksize=16
-    pad = 16 - len("admin")
+    pad = blocksize - len("admin")
     pad_char = bytes([pad]).decode()
     email_pad = "fo@bar.comadmin" + pad_char * pad
 

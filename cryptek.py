@@ -75,7 +75,7 @@ def AES_encrypt(key_b, msg_b):
     Wrapper for Cryptography library's AES function
     """
     cipher = AES.new(key_b, AES.MODE_ECB)
-    msg_b = PKCSpad(msg_b, AES.block_size)
+    #msg_b = PKCSpad(msg_b, AES.block_size)
     return cipher.encrypt(msg_b)
 
 def count_reps(x, bs):
@@ -104,6 +104,18 @@ def PKCSstrip(msg):
     msg = msg[:-pad_num]
     return msg
 
+def PKCS_validation(str_b):
+    """ 
+    Validates whether given string has proper padding
+    according to PKCS#7
+    """
+    pad_no = str_b[-1]
+    byte_suffix = str_b[-pad_no:]
+    unique_bytes = len(set(list(byte_suffix)))
+    if unique_bytes != 1:
+        raise Exception("Padding Error!")
+    return PKCSstrip(str_b)
+
 def CBC_mode(key_b, IV, msg_b):
     """ 16 byte key, and IV """
     msg_decrypt = []
@@ -128,8 +140,9 @@ def CBC_encrypt(key_b, IV, msg_b):
     #print([len(x) for x in msg_chunks])
     ctext_blk = IV
     for ptext_blk in msg_chunks:
-        if len(ptext_blk) !=16:
+        if len(ptext_blk) % 16 != 0:
             ptext_blk = PKCSpad(ptext_blk, 16)
+        #print(len(ptext_blk), len(ctext_blk))
         ctext_blk = AES_encrypt(key_b, bxor(ptext_blk, ctext_blk))
         msg_encrypt.append(ctext_blk)
     return b''.join(msg_encrypt)
