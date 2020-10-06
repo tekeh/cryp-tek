@@ -162,6 +162,15 @@ def CBC_decrypt(key_b, IV, msg_b):
         msg_decrypt.append(ptext_blk)
     return msg_decrypt
 
+def CTR_encrypt(key_b, msg_b, nonce = bytes(8)):
+    blocks = math.ceil(len(msg_b)/blocksize)
+    bytestream = b''
+    for k in range(blocks):
+        ctr = nonce + k.to_bytes(8, byteorder='little')
+        bytestream += AES_encrypt(key_b, ctr)
+    cipher = bxor(msg_b, bytestream[:len(msg_b)])
+    return cipher
+
 def rand_bytes(num):
     """ Returns $(num) random bytes, read from /dev/urandom. Not cryptographically sercure, obv"""
     buf = open("/dev/urandom", "rb").read(num)
