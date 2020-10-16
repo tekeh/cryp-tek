@@ -1,4 +1,5 @@
 import codecs
+import math
 import argparse
 import base64
 from Crypto.Cipher import AES
@@ -163,6 +164,7 @@ def CBC_decrypt(key_b, IV, msg_b):
     return msg_decrypt
 
 def CTR_encrypt(key_b, msg_b, nonce = bytes(8)):
+    blocksize=16
     blocks = math.ceil(len(msg_b)/blocksize)
     bytestream = b''
     for k in range(blocks):
