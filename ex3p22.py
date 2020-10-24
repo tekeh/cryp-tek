@@ -2,7 +2,6 @@ from cryptek import *
 import codecs
 import random
 import time
-from ex3p21 import *
 
 def time_stamped():
     ini_stall = random.randint(40,1000)
