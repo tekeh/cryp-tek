@@ -3,16 +3,6 @@ import codecs
 from sha1_pp import sha1
 import time
 
-def hmac_sha1(key_b, msg_b, blocksize=64):
-    if len(key_b) > blocksize:
-        key = codecs.decode(sha1(key_b), 'hex')
-    elif len(key_b) < blocksize:
-        key_b += bytes( (-len(key_b)) % blocksize)
-    
-    o_key_pad = bxor(key_b, bytes([0x5c])*blocksize) 
-    i_key_pad = bxor(key_b, bytes([0x36])*blocksize) 
-    return sha1(o_key_pad + codecs.decode(sha1(i_key_pad+msg_b), 'hex'))
-
 def insecure_compare(buf0, buf1):
     if len(buf0) != len(buf1):
         return False

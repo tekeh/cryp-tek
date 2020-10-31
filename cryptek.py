@@ -3,6 +3,7 @@ import math
 import argparse
 import base64
 from Crypto.Cipher import AES
+from sha1_pp import sha1
 
 ## Class Definitions
 
@@ -311,6 +312,16 @@ def MT_streamcipher(seed, msg_b):
 def prefix_mac(key_b, msg_b):
     return sha1(key_b+msg_b)
 
+
+def hmac_sha1(key_b, msg_b, blocksize=64):
+    if len(key_b) > blocksize:
+        key = codecs.decode(sha1(key_b), 'hex')
+    elif len(key_b) < blocksize:
+        key_b += bytes( (-len(key_b)) % blocksize)
+    
+    o_key_pad = bxor(key_b, bytes([0x5c])*blocksize) 
+    i_key_pad = bxor(key_b, bytes([0x36])*blocksize) 
+    return sha1(o_key_pad + codecs.decode(sha1(i_key_pad+msg_b), 'hex'))
 
 if __name__ == "__main__":
     pass
