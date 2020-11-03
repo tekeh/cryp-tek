@@ -1,7 +1,7 @@
 using Polynomials
 using StatsBase
 
-function ckks_naive_encode(x)
+function ckks_canon_encode(x)
 	# Encodes vector as a complex-coefficient polynomial ring
 	dim = length(x) ## number of elements
 	root_unity = exp(1*π*im/(dim)) 	
@@ -11,7 +11,7 @@ function ckks_naive_encode(x)
 	poly = Polynomial(coeffs)
 end
 
-function ckks_naive_decode(p::Polynomial{Complex{Float64}})
+function ckks_canon_decode(p::Polynomial{Complex{Float64}})
 	# Decodes a polynomial into a vector
 	order = length(p)-1 ## order of polnomial
 	root_unity = exp(1*π*im/(order+1) ) 	
@@ -45,7 +45,7 @@ function poly_basis_coeffs(x, prec=100)
 	coeffs  = [ real(dot(vd[:,k], x))/norm(vd[:,k])^2 for k=1:size(vd)[2] ]
 	#int_coords = coordinate_wise_random_rounding(coeffs)
 	#y = b_basis * int_coords
-	#p = ckks_naive_encode(y)
+	#p = ckks_canon_encode(y)
 end
 
 function ckks_encode(x, scale=64)
@@ -56,7 +56,7 @@ function ckks_encode(x, scale=64)
 #	 
 	scaled_pi_x = pi_inverse(x) * scale
 	rounded_scaled_pi_x = cwrr_project(scaled_pi_x)
-	p = ckks_naive_encode(rounded_scaled_pi_x)
+	p = ckks_canon_encode(rounded_scaled_pi_x)
 	# Round coeffs after the fact
 	poly_coeffs = [round(c) for c in p.coeffs]
 	p_round = Polynomial(poly_coeffs)
@@ -64,7 +64,7 @@ end
 
 function ckks_decode(p::Polynomial, scale=64)
 	rescaled_p = p/scale
-	x = ckks_naive_decode(rescaled_p)
+	x = ckks_canon_decode(rescaled_p)
 	pi_x = pi_transform(x)
 end
 
@@ -100,5 +100,5 @@ vec = [root_unity^(2*k-1) for k in 1:dim]
 vd = vandermonde(vec)
 
 b = vd * coords
-p = ckks_naive_encode(b)
+p = ckks_canon_encode(b)
 println(p)
